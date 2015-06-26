@@ -69,6 +69,6 @@ class IsOwnerOrSuperuser(permissions.BasePermission):
         if user:
             print(user == request.user)
             return user == request.user
-        # Since User doesn't exist, we don't really care about permission, and allow the method
+        # Since User doesn't exist, we don't really care about permission, but still deny the method
         else:
             return False
