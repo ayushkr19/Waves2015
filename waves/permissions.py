@@ -33,12 +33,16 @@ class HasAtLeastOneGroupPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         # Get a mapping of methods to required groups
         required_groups_mapping = getattr(view, 'required_groups', {})
+        print(required_groups_mapping)
 
         # Determine the required groups for this request method
         required_groups = required_groups_mapping.get(request.method, [])
+        print(required_groups)
 
+        print(request.user)
         # Return True if user is anonymous and anonymous users are allowed
         if request.user.is_anonymous() and ANONYMOUS_USER_GRP in required_groups:
+            print('Anon user. Returning true')
             return True
 
         # Return True if user is in any of the group
