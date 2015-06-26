@@ -9,6 +9,8 @@ from waves.permissions import *
 from waves.serializers import *
 from rest_framework import status
 from constants import *
+from django.core.exceptions import ObjectDoesNotExist
+
 
 
 # Create your views here.
@@ -65,7 +67,14 @@ class ProfileDetailView(APIView):
 
         user = User.objects.filter(username=username).first()
         if user:
-            profile = AnyUserSerializer(user.profile)
-            return Response(profile.data)
+
+            try:
+                profile = user.profile
+            except ObjectDoesNotExist:
+                return Response(data={'detail': 'Profile does not exist for the specified User'},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            profile_serializer = AnyUserSerializer(profile)
+            return Response(profile_serializer.data)
         else:
-            return status.HTTP_400_BAD_REQUEST
+            return Response(data={'detail': 'User does not exist with the specified username'},
+                            status=status.HTTP_400_BAD_REQUEST)
