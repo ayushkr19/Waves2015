@@ -1,0 +1,34 @@
+__author__ = 'ayush'
+
+# Constants
+
+# User types
+CONTENT_MODIFIERS = 'CM'
+EVENT_MANAGERS = 'EM'
+EVENTS_HEAD = 'EH'
+PARTICIPANT = 'P'
+JUDGE = 'JU'
+BASIC_USER = 'BA'
+
+# Group names
+ANONYMOUS_USER_GRP = 'AnonymousUser'
+CONTENT_MODIFIERS_GRP = 'EventContentEditors'
+DEVELOPERS_GRP = 'Developers'
+COCO_GRP = 'CoCo'
+EVENT_MANAGERS_GRP = 'EventManagers'
+JUDGE_GRP = 'Judges'
+BASIC_USER_GRP = 'BasicUsers'
+PARTICIPANT_GRP = 'Participant'
+
+ALL_GRPS_EXCEPT_ANONYMOUS_USER = [CONTENT_MODIFIERS_GRP, DEVELOPERS_GRP, COCO_GRP, EVENT_MANAGERS_GRP,
+            JUDGE_GRP, BASIC_USER_GRP, PARTICIPANT_GRP]
+ALL_GRPS = [ANONYMOUS_USER_GRP] + ALL_GRPS_EXCEPT_ANONYMOUS_USER
+
+USER_TYPE_CHOICES = (
+    (CONTENT_MODIFIERS, 'Content Modifiers'),
+    (EVENT_MANAGERS, 'Event Managers'),
+    (EVENTS_HEAD, 'Events Head'),
+    (PARTICIPANT, 'Participant'),
+    (JUDGE, 'Event Judge'),
+    (BASIC_USER, 'Basic Default User?')
+)
