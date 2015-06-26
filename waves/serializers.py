@@ -1,7 +1,9 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from waves.models import Event, Profile
 from rest_framework import serializers
 from constants import *
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 def create_user(username, email, password, first_name, last_name):
 
@@ -97,3 +99,35 @@ class AnyUserSerializer(serializers.Serializer):
         if password:
             user.set_password(password)
         user.save()
+
+    @receiver(post_save, sender=Profile)
+    def update_profile_user_groups(sender, instance, created, **kwargs):
+        """
+        Method to assign groups to users on the basis of their user type
+        :param sender: Profile
+        :param instance: The Profile instance
+        :param created:
+        :param kwargs:
+        """
+        print('In post save')
+        user = instance.user
+        print(user)
+
+        user_type = instance.user_type
+        print(user_type)
+
+        if user_type == CONTENT_MODIFIERS:
+            group = Group.objects.get(name=CONTENT_MODIFIERS_GRP)
+            user.groups.add(group)
+        elif user_type == EVENT_MANAGERS:
+            group = Group.objects.get(name=EVENT_MANAGERS_GRP)
+            user.groups.add(group)
+        elif user_type == PARTICIPANT:
+            group = Group.objects.get(name=PARTICIPANT_GRP)
+            user.groups.add(group)
+        elif user_type == BASIC_USER:
+            group = Group.objects.get(name=BASIC_USER_GRP)
+            user.groups.add(group)
+        elif user_type == JUDGE:
+            group = Group.objects.get(name=JUDGE_GRP)
+            user.groups.add(group)
