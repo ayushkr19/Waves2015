@@ -51,6 +51,10 @@ class IsOwnerOrSuperuser(permissions.BasePermission):
 
     def has_permission(self, request, view):
 
+        # If user is superuser, return True
+        if request.user.is_superuser:
+                return True
+
         # Get username which has been passed from the URL
         username = view.kwargs['username']
 
@@ -63,10 +67,8 @@ class IsOwnerOrSuperuser(permissions.BasePermission):
         user = User.objects.filter(username=username).first()
 
         if user:
-            if request.user.is_superuser:
-                return True
-            else:
-                print(user == request.user)
-                return user == request.user
+            print(user == request.user)
+            return user == request.user
+        # Since User doesn't exist, we don't really care about permission, and allow the method
         else:
             return False
