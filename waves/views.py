@@ -4,9 +4,9 @@ from rest_framework import generics
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from waves.models import Event, Profile
-from waves.permissions import HasAllGroupsPermission, HasAtLeastOneGroupPermission
-from waves.serializers import EventSerializer,  UserSerializer, AnyUserSerializer
+from waves.models import *
+from waves.permissions import *
+from waves.serializers import *
 from rest_framework import status
 from constants import *
 
@@ -54,3 +54,18 @@ class ProfileListView(generics.ListAPIView):
     permission_classes = (permissions.IsAdminUser, )
     queryset = Profile.objects.all()
     serializer_class = AnyUserSerializer
+
+class ProfileDetailView(APIView):
+    permission_classes = (IsOwnerOrSuperuser, )
+
+    def get(self, request, username, format=None):
+
+        username = self.kwargs['username']
+        print(username)
+
+        user = User.objects.filter(username=username).first()
+        if user:
+            profile = AnyUserSerializer(user.profile)
+            return Response(profile.data)
+        else:
+            return status.HTTP_400_BAD_REQUEST
