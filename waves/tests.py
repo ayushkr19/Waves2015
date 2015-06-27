@@ -38,7 +38,7 @@ class ProfileTests(APITestCase):
                                             'first_name': 'first',
                                             'last_name': 'last'
                                         },
-                                        'user_type': 'BasicUsers',
+                                        'user_type': BASIC_USER,
                                         'phone_num': '9637383571'
 
                                     }, format='json')
@@ -66,7 +66,7 @@ class ProfileTests(APITestCase):
                                             'first_name': 'first',
                                             'last_name': 'last'
                                         },
-                                        'user_type': 'BasicUsers',
+                                        'user_type': BASIC_USER,
                                         'phone_num': '9637383571'
 
                                     }, format='json')
@@ -82,7 +82,7 @@ class ProfileTests(APITestCase):
                                             'first_name': 'first',
                                             'last_name': 'last'
                                         },
-                                        'user_type': 'BasicUsers',
+                                        'user_type': BASIC_USER,
                                         'phone_num': '9637383571'
 
                                     }, format='json')
