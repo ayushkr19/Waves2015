@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AnyUserSerializer(serializers.Serializer):
 
     user = UserSerializer()
-    user_type = serializers.CharField(default=BASIC_USER, max_length=5)
+    user_type = serializers.CharField(default=BASIC_USER, max_length=30)
     phone_num = serializers.CharField(max_length=10)
 
     def create(self, validated_data):
@@ -116,18 +116,21 @@ class AnyUserSerializer(serializers.Serializer):
         user_type = instance.user_type
         print(user_type)
 
-        if user_type == CONTENT_MODIFIERS:
-            group = Group.objects.get(name=CONTENT_MODIFIERS_GRP)
-            user.groups.add(group)
-        elif user_type == EVENT_MANAGERS:
-            group = Group.objects.get(name=EVENT_MANAGERS_GRP)
-            user.groups.add(group)
-        elif user_type == PARTICIPANT:
-            group = Group.objects.get(name=PARTICIPANT_GRP)
-            user.groups.add(group)
-        elif user_type == BASIC_USER:
-            group = Group.objects.get(name=BASIC_USER_GRP)
-            user.groups.add(group)
-        elif user_type == JUDGE:
-            group = Group.objects.get(name=JUDGE_GRP)
-            user.groups.add(group)
+        group = Group.objects.get(name=user_type)
+        user.groups.add(group)
+
+        # if user_type == CONTENT_MODIFIERS:
+        #     group = Group.objects.get(name=CONTENT_MODIFIERS_GRP)
+        #     user.groups.add(group)
+        # elif user_type == EVENT_MANAGERS:
+        #     group = Group.objects.get(name=EVENT_MANAGERS_GRP)
+        #     user.groups.add(group)
+        # elif user_type == PARTICIPANT:
+        #     group = Group.objects.get(name=PARTICIPANT_GRP)
+        #     user.groups.add(group)
+        # elif user_type == BASIC_USER:
+        #     group = Group.objects.get(name=BASIC_USER_GRP)
+        #     user.groups.add(group)
+        # elif user_type == JUDGE:
+        #     group = Group.objects.get(name=JUDGE_GRP)
+        #     user.groups.add(group)

@@ -20,10 +20,9 @@ class Event(models.Model):
     # event_managers = models.Many
 
 class Profile(models.Model):
-    # Modify in serializers.py too
 
     user = models.OneToOneField(User, null=True)
-    user_type = models.CharField(choices=USER_TYPE_CHOICES, default=BASIC_USER, max_length=5)
+    user_type = models.CharField(choices=USER_TYPE_CHOICES, default=BASIC_USER, max_length=30)
     phone_num = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

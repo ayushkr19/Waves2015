@@ -3,13 +3,14 @@ __author__ = 'ayush'
 # Constants
 
 # User types
-CONTENT_MODIFIERS = 'CM'
-EVENT_MANAGERS = 'EM'
-EVENTS_HEAD = 'EH'
-PARTICIPANT = 'P'
-JUDGE = 'JU'
-BASIC_USER = 'BA'
-
+CONTENT_MODIFIERS = 'EventContentEditors'
+EVENT_MANAGERS = 'EventManagers'
+EVENTS_HEAD = 'EventsHead'
+PARTICIPANT = 'Participant'
+JUDGE = 'Judges'
+BASIC_USER = 'BasicUsers'
+COCO = 'CoCo'
+DEVELOPER = 'Developers'
 # Group names
 ANONYMOUS_USER_GRP = 'AnonymousUser'
 CONTENT_MODIFIERS_GRP = 'EventContentEditors'
@@ -30,5 +31,7 @@ USER_TYPE_CHOICES = (
     (EVENTS_HEAD, 'Events Head'),
     (PARTICIPANT, 'Participant'),
     (JUDGE, 'Event Judge'),
-    (BASIC_USER, 'Basic Default User?')
+    (BASIC_USER, 'Basic Default User?'),
+    (COCO, 'COCO'),
+    (DEVELOPER, 'Developers')
 )
