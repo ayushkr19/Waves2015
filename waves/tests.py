@@ -3,7 +3,7 @@ from django.test import TestCase
 
 # Create your tests here.
 from rest_framework import status
-from rest_framework.test import APITestCase, APIRequestFactory
+from rest_framework.test import APITestCase, APIRequestFactory, APIClient
 from waves.models import Profile
 from waves.views import ProfileCreate
 from constants import *
@@ -13,16 +13,26 @@ class ProfileTests(APITestCase):
     def setUp(self):
         self.factory = APIRequestFactory()
 
+        # Create all groups necessary
+        for group_name in ALL_GRPS:
+            Group.objects.create(name=group_name)
+
         # Create a user (just for fun)
         user = User.objects.create_user(username='test_username', email='test@gmail.com',
                                         password='test_password')
         user.first_name = 'first'
         user.last_name = 'last'
         user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=BASIC_USER, phone_num='95553')
+        profile.save()
 
-        # Create all groups necessary
-        for group_name in ALL_GRPS:
-            Group.objects.create(name=group_name)
+        # Create a user without profile
+        user = User.objects.create_user(username='test_username_no_profile', email='test2@gmail.com',
+                                        password='test_password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
 
     def test_user_created(self):
         """
@@ -107,3 +117,54 @@ class ProfileTests(APITestCase):
 
             user.delete()
             profile.delete()
+
+    def test_user_can_access_his_profile(self):
+        """
+        Test users are able to view information of their own profile, and they cannot access
+        another user's profile unless they are a superuser
+        """
+        user = User.objects.create_user(username='ayushkrcm', email='uer@gmail.com',
+                                        password='ayushd')
+        user.save()
+        profile = Profile.objects.create(user=user, user_type=BASIC_USER, phone_num='95553')
+        profile.save()
+
+        client = APIClient()
+
+        # Get own profile without providing authentication information
+        response = client.get('/profile/ayushkrcm/')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Get own profile with Basic authentication
+        encoded = 'YXl1c2hrcmNtOmF5dXNoZA=='
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+        response = client.get('/profile/ayushkrcm/')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Get another user's information
+        response = client.get('/profile/test_username/')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Setting user to superuser
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+
+        # Get own profile with Basic authentication
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+        response = client.get('/profile/ayushkrcm/')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Get another user's information
+        response = client.get('/profile/test_username/')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Get a user without a profile's info
+        response = client.get('/profile/test_username_no_profile/')
+        self.assertEquals(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEquals(response.data, NO_PROFILE_FOR_USER_ERROR_MESSAGE)
+
+        # Get a non existent user's profile
+        response = client.get('/profile/test_username_nonexistent/')
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.data, NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE)
