@@ -95,10 +95,10 @@ class ProfileDetailView(APIView):
             try:
                 profile = user.profile
             except ObjectDoesNotExist:
-                return Response(data={'detail': 'Profile does not exist for the specified User'},
+                return Response(data=NO_PROFILE_FOR_USER_ERROR_MESSAGE,
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             profile_serializer = AnyUserSerializer(profile)
             return Response(profile_serializer.data)
         else:
-            return Response(data={'detail': 'User does not exist with the specified username'},
+            return Response(data=NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE,
                             status=status.HTTP_400_BAD_REQUEST)
