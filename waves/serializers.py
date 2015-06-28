@@ -54,6 +54,14 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    @receiver(post_save, sender=User)
+    def add_to_groups_if_superuser(sender, instance, created, **kwargs):
+        if instance.is_staff is True and instance.is_superuser is True:
+            for group_name in ALL_GRPS_EXCEPT_ANONYMOUS_USER:
+                group = Group.objects.get(name=group_name)
+                instance.groups.add(group)
+
+
 
 class AnyUserSerializer(serializers.Serializer):
 
@@ -109,28 +117,14 @@ class AnyUserSerializer(serializers.Serializer):
         :param created:
         :param kwargs:
         """
-        print('In post save')
+
         user = instance.user
-        print(user)
+        # print(user)
 
         user_type = instance.user_type
-        print(user_type)
+        # print(user_type)
 
         group = Group.objects.get(name=user_type)
         user.groups.add(group)
 
-        # if user_type == CONTENT_MODIFIERS:
-        #     group = Group.objects.get(name=CONTENT_MODIFIERS_GRP)
-        #     user.groups.add(group)
-        # elif user_type == EVENT_MANAGERS:
-        #     group = Group.objects.get(name=EVENT_MANAGERS_GRP)
-        #     user.groups.add(group)
-        # elif user_type == PARTICIPANT:
-        #     group = Group.objects.get(name=PARTICIPANT_GRP)
-        #     user.groups.add(group)
-        # elif user_type == BASIC_USER:
-        #     group = Group.objects.get(name=BASIC_USER_GRP)
-        #     user.groups.add(group)
-        # elif user_type == JUDGE:
-        #     group = Group.objects.get(name=JUDGE_GRP)
-        #     user.groups.add(group)
+
