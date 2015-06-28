@@ -1,11 +1,12 @@
+import base64
 from django.contrib.auth.models import User, Group
 from django.test import TestCase
 
 # Create your tests here.
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
-from waves.models import Profile
-from waves.views import ProfileCreate
+from waves.models import Profile, Event
+from waves.views import ProfileCreate, EventList
 from constants import *
 
 
@@ -168,3 +169,85 @@ class ProfileTests(APITestCase):
         response = client.get('/profile/test_username_nonexistent/')
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(response.data, NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE)
+
+class EventTests(APITestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+
+        # Create all groups necessary
+        for group_name in ALL_GRPS:
+            Group.objects.create(name=group_name)
+
+        # Create a user (just for fun)
+        user = User.objects.create_user(username='test_username_cm', email='test@gmail.com',
+                                        password='password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=CONTENT_MODIFIERS, phone_num='95553')
+        profile.save()
+
+        # Create a superuser
+        superuser = User.objects.create_user(username='ayushkrcm', email='su@gmail.com',
+                                             password='ayushd')
+        superuser.first_name = 'first_su'
+        superuser.last_name = 'last_su'
+        superuser.is_staff = True
+        superuser.is_superuser = True
+        superuser.save()
+        # Create profile for the superuser
+        profile = Profile.objects.create(user=superuser, user_type=CONTENT_MODIFIERS, phone_num='95553')
+        profile.save()
+
+        # Create events
+        event1_data = {
+            'name': 'Event 1',
+            'description': 'Description',
+            'subtitle': 'Subtitle',
+            'event_url': 'http://www.google.com'
+        }
+        event1 = Event.objects.create(**event1_data)
+        event1.save()
+
+        event2_data = {
+            'name': 'Event 2',
+            'description': 'Description 2',
+            'subtitle': 'Bla Bla',
+            'event_url': 'http://www.fb.com'
+        }
+        event2 = Event.objects.create(**event2_data)
+        event2.save()
+
+    def test_event_created(self):
+        event1 = Event.objects.get(name='Event 1')
+        self.assertEquals(event1.description, 'Description')
+        self.assertEquals(event1.subtitle, 'Subtitle')
+        self.assertEquals(event1.event_url, 'http://www.google.com')
+
+    def test_event_create(self):
+        client = APIClient()
+        event_data = {
+            'name': 'Event 3',
+            'description': 'Description',
+            'subtitle': 'subtitle',
+            'event_url': 'http://www.gogle.com'
+        }
+        response = client.post('/events/', data=event_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        response = client.post('/events/', data=event_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+        Event.objects.get(name='Event 3').delete()
+
+        encoded = base64.b64encode('ayushkrcm:ayushd')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        response = client.post('/events/', data=event_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
