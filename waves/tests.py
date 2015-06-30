@@ -11,6 +11,10 @@ from constants import *
 
 
 class ProfileTests(APITestCase):
+    """
+    Tests related to profiles
+    """
+
     def setUp(self):
         self.factory = APIRequestFactory()
 
@@ -106,7 +110,6 @@ class ProfileTests(APITestCase):
         """
 
         for group_name in ALL_GRPS_EXCEPT_ANONYMOUS_USER:
-
             user = User.objects.create_user(username='username', email='uer@gmail.com',
                                             password='password')
             user.save()
@@ -170,7 +173,27 @@ class ProfileTests(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(response.data, NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE)
 
+
 class EventTests(APITestCase):
+    """
+    Tests related to events
+    """
+    event1_data = {
+        'name': 'Event 1',
+        'description': 'Description',
+        'subtitle': 'Subtitle',
+        'event_url': 'http://www.google.com'
+    }
+
+    event2_data = {
+        'name': 'Event 2',
+        'description': 'Description 2',
+        'subtitle': 'Bla Bla',
+        'event_url': 'http://www.fb.com'
+    }
+
+    all_event_data = [event1_data, event2_data]
+
     def setUp(self):
         self.factory = APIRequestFactory()
 
@@ -201,31 +224,27 @@ class EventTests(APITestCase):
         profile.save()
 
         # Create events
-        event1_data = {
-            'name': 'Event 1',
-            'description': 'Description',
-            'subtitle': 'Subtitle',
-            'event_url': 'http://www.google.com'
-        }
-        event1 = Event.objects.create(**event1_data)
+
+        event1 = Event.objects.create(**self.event1_data)
         event1.save()
 
-        event2_data = {
-            'name': 'Event 2',
-            'description': 'Description 2',
-            'subtitle': 'Bla Bla',
-            'event_url': 'http://www.fb.com'
-        }
-        event2 = Event.objects.create(**event2_data)
+        event2 = Event.objects.create(**self.event2_data)
         event2.save()
 
     def test_event_created(self):
+        """
+        Test that the event has been created in the setUp method
+        """
         event1 = Event.objects.get(name='Event 1')
         self.assertEquals(event1.description, 'Description')
         self.assertEquals(event1.subtitle, 'Subtitle')
         self.assertEquals(event1.event_url, 'http://www.google.com')
 
     def test_event_create(self):
+        """
+        Test event creation through the API.
+        Only users belonging to the CM group can create events
+        """
         client = APIClient()
         event_data = {
             'name': 'Event 3',
@@ -233,21 +252,50 @@ class EventTests(APITestCase):
             'subtitle': 'subtitle',
             'event_url': 'http://www.gogle.com'
         }
+
+        # Post data from an unauthenticated user
         response = client.post('/events/', data=event_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        encoded = base64.b64encode('test_username_cm:password')
+        # Set authentication details for other group
+        encoded = base64.b64encode('test_username:test_password')
         client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
 
+        # Post data from authenticated user belonging to the other group
+        response = client.post('/events/', data=event_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Set authentication details for necessary group
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials()  # To clear auth credentials
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        # Post data from authenticated user belonging to the necessary group
         response = client.post('/events/', data=event_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
 
         Event.objects.get(name='Event 3').delete()
 
+        # Setting authentication details for superuser
         encoded = base64.b64encode('ayushkrcm:ayushd')
         client.credentials()
         client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
 
+        # Posting data from superuser
         response = client.post('/events/', data=event_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
 
+    def test_list_events(self):
+        """
+        Test whether the list of events are being retrieved
+        """
+        client = APIClient()
+
+        response = client.get('/events/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        for i in range(self.all_event_data.__len__()):
+            self.assertEquals(self.all_event_data[i]['name'], response.data[i]['name'])
+            self.assertEquals(self.all_event_data[i]['description'], response.data[i]['description'])
+            self.assertEquals(self.all_event_data[i]['subtitle'], response.data[i]['subtitle'])
+            self.assertEquals(self.all_event_data[i]['event_url'], response.data[i]['event_url'])
