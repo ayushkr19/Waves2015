@@ -4,6 +4,15 @@ from constants import *
 
 # Create your models here.
 
+class Profile(models.Model):
+
+    user = models.OneToOneField(User, null=True)
+    user_type = models.CharField(choices=USER_TYPE_CHOICES, default=BASIC_USER, max_length=30)
+    phone_num = models.CharField(max_length=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+
 class Event(models.Model):
 
     def __str__(self):
@@ -17,12 +26,5 @@ class Event(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     description = models.TextField()
     event_url = models.URLField(blank=True, null=True)
-    # event_managers = models.Many
+    event_managers = models.ManyToManyField(Profile, blank=True, related_name='ems')
 
-class Profile(models.Model):
-
-    user = models.OneToOneField(User, null=True)
-    user_type = models.CharField(choices=USER_TYPE_CHOICES, default=BASIC_USER, max_length=30)
-    phone_num = models.CharField(max_length=10)
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)

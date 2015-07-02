@@ -31,7 +31,7 @@ USER_TYPE_CHOICES = (
     (EVENTS_HEAD, 'Events Head'),
     (PARTICIPANT, 'Participant'),
     (JUDGE, 'Event Judge'),
-    (BASIC_USER, 'Basic Default User?'),
+    (BASIC_USER, 'Basic Default User'),
     (COCO, 'COCO'),
     (DEVELOPER, 'Developers')
 )
