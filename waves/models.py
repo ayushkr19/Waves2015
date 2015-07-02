@@ -6,6 +6,9 @@ from constants import *
 
 class Profile(models.Model):
 
+    def __str__(self):
+        return self.user.username + ", " + self.user.first_name + " " + self.user.last_name
+
     user = models.OneToOneField(User, null=True)
     user_type = models.CharField(choices=USER_TYPE_CHOICES, default=BASIC_USER, max_length=30)
     phone_num = models.CharField(max_length=10)
