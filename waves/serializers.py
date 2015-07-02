@@ -20,14 +20,6 @@ def create_user(username, email, password, first_name, last_name):
         print('User None')
     return user
 
-
-class EventSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Event
-        fields = ('name', 'subtitle', 'description', 'event_date', 'event_time',
-                  'event_url', 'created_at', 'modified_at')
-
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -60,6 +52,55 @@ class UserSerializer(serializers.ModelSerializer):
             for group_name in ALL_GRPS_EXCEPT_ANONYMOUS_USER:
                 group = Group.objects.get(name=group_name)
                 instance.groups.add(group)
+
+# Original Event serializer. Using the depth option
+# returns additional unwanted data of the user objects.
+# Thus the need of custom serializers
+# class EventSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Event
+#         fields = ('name', 'subtitle', 'description', 'event_date', 'event_time',
+#                   'event_url', 'created_at', 'modified_at', 'event_managers')
+#         depth = 2
+
+
+class ProfileSerializer(serializers.Serializer):
+    user = UserSerializer()
+    user_type = serializers.CharField(default=BASIC_USER, max_length=30)
+    phone_num = serializers.CharField(max_length=10)
+    created_at = serializers.CharField(required=False)
+    modified_at = serializers.CharField(required=False)
+
+    def create(self, validated_data):
+        user_data = validated_data.pop('user')
+        user = User.objects.get_or_create(**user_data)
+
+        return Profile.objects.create(user=user, **validated_data)
+
+    def update(self, instance, validated_data):
+        # TODO:
+        return instance
+
+
+class EventSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    subtitle = serializers.CharField(max_length=50, default='')
+    event_date = serializers.DateField(required=False)
+    event_time = serializers.TimeField(required=False)
+    created_at = serializers.DateTimeField(required=False)
+    modified_at = serializers.DateTimeField(required=False)
+    description = serializers.CharField()
+    event_url = serializers.URLField(required=False)
+    event_managers = ProfileSerializer(required=False, many=True)
+
+    def create(self, validated_data):
+        return Event.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        # TODO:
+        return instance
+
+
 
 
 
