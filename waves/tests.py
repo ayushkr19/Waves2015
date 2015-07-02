@@ -299,3 +299,17 @@ class EventTests(APITestCase):
             self.assertEquals(self.all_event_data[i]['description'], response.data[i]['description'])
             self.assertEquals(self.all_event_data[i]['subtitle'], response.data[i]['subtitle'])
             self.assertEquals(self.all_event_data[i]['event_url'], response.data[i]['event_url'])
+
+    def test_individual_event(self):
+        """
+        Test whether single event's details are being retrieved or not
+        """
+        client = APIClient()
+
+        response = client.get('/events/1/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        self.assertEquals(self.all_event_data[0]['name'], response.data['name'])
+        self.assertEquals(self.all_event_data[0]['description'], response.data['description'])
+        self.assertEquals(self.all_event_data[0]['subtitle'], response.data['subtitle'])
+        self.assertEquals(self.all_event_data[0]['event_url'], response.data['event_url'])
