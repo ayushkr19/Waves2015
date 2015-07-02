@@ -313,3 +313,15 @@ class EventTests(APITestCase):
         self.assertEquals(self.all_event_data[0]['description'], response.data['description'])
         self.assertEquals(self.all_event_data[0]['subtitle'], response.data['subtitle'])
         self.assertEquals(self.all_event_data[0]['event_url'], response.data['event_url'])
+        self.assertNotEquals(None, response.data['created_at'])
+        self.assertNotEquals(None, response.data['modified_at'])
+
+        response = client.get('/events/2/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        self.assertEquals(self.all_event_data[1]['name'], response.data['name'])
+        self.assertEquals(self.all_event_data[1]['description'], response.data['description'])
+        self.assertEquals(self.all_event_data[1]['subtitle'], response.data['subtitle'])
+        self.assertEquals(self.all_event_data[1]['event_url'], response.data['event_url'])
+        self.assertNotEquals(None, response.data['created_at'])
+        self.assertNotEquals(None, response.data['modified_at'])
