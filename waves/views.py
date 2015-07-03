@@ -105,7 +105,9 @@ class ProfileDetailView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, username, format=None):
-
+        """
+        To update a profile of a user, use put. In the user json, do not include username
+        """
         username = self.kwargs['username']
         print('Username to be updated ' + username)
         user = User.objects.filter(username=username).first()
@@ -131,12 +133,77 @@ class ProfileDetailView(APIView):
             return Response(data=NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE,
                             status=status.HTTP_404_NOT_FOUND)
 
-class EventContentEditorsListView(generics.ListAPIView):
+# class EventManagersListView(generics.ListAPIView):
+#     """
+#     Return a list of event content editors
+#     (people who can be added as event managers)
+#     """
+#     permission_classes = (HasAtLeastOneGroupPermission, )
+#     required_groups = {
+#         'GET':  [CONTENT_MODIFIERS_GRP],
+#     }
+#     serializer_class = ProfileSerializer
+#
+#     def get_queryset(self):
+#         return Profile.objects.filter(user__groups__name__in=[EVENT_MANAGERS_GRP])
+
+
+class EventManagerOfEvents(APIView):
+    """
+    Handle event managers of an event
+    """
     permission_classes = (HasAtLeastOneGroupPermission, )
     required_groups = {
-        'GET':  [CONTENT_MODIFIERS_GRP],
+        'GET': [CONTENT_MODIFIERS_GRP],
+        'POST': [CONTENT_MODIFIERS_GRP],
+        'DELETE': [CONTENT_MODIFIERS_GRP]
     }
-    serializer_class = ProfileSerializer
 
-    def get_queryset(self):
-        return Profile.objects.filter(user__groups__name__in=[CONTENT_MODIFIERS_GRP])
+    def get(self, request, format=None):
+        """
+        Return a list of events
+        """
+        events = Event.objects.all()
+        event_serializer = EventSerializer(data=events, many=True)
+        return Response(status=status.HTTP_200_OK, data=event_serializer.data)
+
+    def post(self, request, format=None):
+        """
+        Add event managers to an event
+        """
+        print('Request data: ')
+        print(request.data)
+        event_name = request.data['event_name']
+        event_managers = request.data['event_managers']
+
+        event = Event.objects.filter(name=event_name).first()
+        if event:
+            for event_manager in event_managers:
+                profile = Profile.objects.get(user__username=event_manager['name'])
+                if not Group.objects.get(name=EVENT_MANAGERS_GRP) in profile.user.groups.all():
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data=HACKER_MESSAGE)
+                event.event_managers.add(profile)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=NO_EVENT_WITH_SPECIFIED_NAME)
+
+    def delete(self, request, format=None):
+        """
+        Remove event managers from an event
+        """
+        print('Delete request data:')
+        print(request.data)
+
+        event_name = request.data['event_name']
+        event_managers = request.data['event_managers']
+
+        event = Event.objects.filter(name=event_name).first()
+        if event:
+            for event_manager in event_managers:
+                profile = Profile.objects.get(user__username=event_manager['name'])
+                if not Group.objects.get(name=EVENT_MANAGERS_GRP) in profile.user.groups.all():
+                    return Response(status=status.HTTP_400_BAD_REQUEST, data=HACKER_MESSAGE)
+                event.event_managers.remove(profile)
+            return Response(status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=NO_EVENT_WITH_SPECIFIED_NAME)

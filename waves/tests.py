@@ -243,7 +243,7 @@ class EventTests(APITestCase):
     def test_event_create(self):
         """
         Test event creation through the API.
-        Only users belonging to the CM group can create events
+        Only users belonging to the CM group (or superuser) can create events
         """
         client = APIClient()
         event_data = {

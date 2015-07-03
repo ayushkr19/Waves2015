@@ -39,3 +39,5 @@ USER_TYPE_CHOICES = (
 # Error responses
 NO_PROFILE_FOR_USER_ERROR_MESSAGE = {'detail': 'Profile does not exist for the specified User'}
 NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE = {'detail': 'User does not exist with the specified username'}
+NO_EVENT_WITH_SPECIFIED_NAME = {'detail': 'No event with specified name exists'}
+HACKER_MESSAGE = {'detail': 'Trying to hack, are we? :)'}
