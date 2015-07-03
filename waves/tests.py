@@ -192,6 +192,19 @@ class EventTests(APITestCase):
         'event_url': 'http://www.fb.com'
     }
 
+    add_em_to_event_data = {
+        "event_name": "Event 1",
+        "event_managers": [
+            {
+                "name": "test_username_em1"
+            },
+            {
+                "name": "test_username_em2"
+            }
+        ]
+
+    }
+
     all_event_data = [event1_data, event2_data]
 
     def setUp(self):
@@ -369,3 +382,26 @@ class EventTests(APITestCase):
             self.assertEquals(profile['user_type'], EVENT_MANAGERS)
             self.assertEquals(profile['phone_num'], '95553')
             self.assertNotEquals(None, profile['user']['username'])
+
+    def test_post_add_event_manager_to_event(self):
+        """
+        Test whether event managers are added to the event or not
+        """
+        client = APIClient()
+
+        response = client.post('/eventmanagers/', format='json', data=self.add_em_to_event_data)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Setting authentication details for content modifier
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        response = client.post('/eventmanagers/', format='json', data=self.add_em_to_event_data)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        event = Event.objects.get(name='Event 1')
+        em1 = event.event_managers.all()[0]
+        em2 = event.event_managers.all()[1]
+        self.assertEquals(em1.user.username, 'test_username_em1')
+        self.assertEquals(em2.user.username, 'test_username_em2')
