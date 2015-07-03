@@ -69,6 +69,7 @@ class ProfileCreate(APIView):
             return Response(status=status.HTTP_201_CREATED)
 
 
+
 class ProfileListView(generics.ListAPIView):
     """
     Allow admin users to view list of all profiles
@@ -101,4 +102,31 @@ class ProfileDetailView(APIView):
             return Response(profile_serializer.data)
         else:
             return Response(data=NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE,
-                            status=status.HTTP_400_BAD_REQUEST)
+                            status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, username, format=None):
+
+        username = self.kwargs['username']
+        print('Username to be updated ' + username)
+        user = User.objects.filter(username=username).first()
+        if user:
+            try:
+                profile = user.profile
+            except ObjectDoesNotExist:
+                return Response(data=NO_PROFILE_FOR_USER_ERROR_MESSAGE,
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            profile_serializer = ProfileSerializer(profile, data=request.data, partial=True)
+            print('\nIn view : Printing profile:')
+            print(profile)
+
+            if profile_serializer.is_valid(raise_exception=True):
+                print('\n In view : Printing profile data:')
+                print(profile_serializer.data)
+
+                print('\n In view : Profile data valid. Saving.')
+                profile_serializer.save()
+                return Response(status=status.HTTP_200_OK)
+
+        else:
+            return Response(data=NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE,
+                            status=status.HTTP_404_NOT_FOUND)

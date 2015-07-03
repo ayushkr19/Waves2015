@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from django.core.exceptions import ObjectDoesNotExist
 from waves.models import Event, Profile
 from rest_framework import serializers
 from constants import *
@@ -78,7 +79,25 @@ class ProfileSerializer(serializers.Serializer):
         return Profile.objects.create(user=user, **validated_data)
 
     def update(self, instance, validated_data):
-        # TODO:
+        user_data = validated_data.pop('user')
+
+        try:
+            user = instance.user
+        except ObjectDoesNotExist:
+            user = User.objects.create_user(**user_data)
+
+        instance.user_type = validated_data.get('user_type', instance.user_type)
+        instance.phone_num = validated_data.get('phone_num', instance.phone_num)
+        instance.save()
+
+        user.email = user_data.get('email', user.email)
+        user.first_name = user_data.get('first_name', user.first_name)
+        user.last_name = user_data.get('last_name', user.last_name)
+        password = user_data.get('password', None)
+        if password:
+            user.set_password(password)
+        user.save()
+
         return instance
 
 

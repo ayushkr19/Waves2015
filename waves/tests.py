@@ -170,7 +170,7 @@ class ProfileTests(APITestCase):
 
         # Get a non existent user's profile
         response = client.get('/profile/test_username_nonexistent/')
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEquals(response.data, NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE)
 
 
