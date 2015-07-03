@@ -161,11 +161,11 @@ class EventManagerOfEvents(APIView):
 
     def get(self, request, format=None):
         """
-        Return a list of events
+        Return a list of event managers
         """
-        events = Event.objects.all()
-        event_serializer = EventSerializer(data=events, many=True)
-        return Response(status=status.HTTP_200_OK, data=event_serializer.data)
+        profiles = Profile.objects.filter(user_type=EVENT_MANAGERS)
+        profiles_serializer = ProfileSerializer(profiles, many=True)
+        return Response(status=status.HTTP_200_OK, data=profiles_serializer.data)
 
     def post(self, request, format=None):
         """
