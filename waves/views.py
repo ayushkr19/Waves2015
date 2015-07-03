@@ -130,3 +130,13 @@ class ProfileDetailView(APIView):
         else:
             return Response(data=NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE,
                             status=status.HTTP_404_NOT_FOUND)
+
+class EventContentEditorsListView(generics.ListAPIView):
+    permission_classes = (HasAtLeastOneGroupPermission, )
+    required_groups = {
+        'GET':  [CONTENT_MODIFIERS_GRP],
+    }
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        return Profile.objects.filter(user__groups__name__in=[CONTENT_MODIFIERS_GRP])
