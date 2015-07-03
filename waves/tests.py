@@ -231,6 +231,25 @@ class EventTests(APITestCase):
         event2 = Event.objects.create(**self.event2_data)
         event2.save()
 
+        # Create event managers
+        user = User.objects.create_user(username='test_username_em1', email='test@gmail.com',
+                                        password='password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=EVENT_MANAGERS, phone_num='95553')
+        profile.save()
+
+        user = User.objects.create_user(username='test_username_em2', email='test@gmail.com',
+                                        password='password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=EVENT_MANAGERS, phone_num='95553')
+        profile.save()
+
     def test_event_created(self):
         """
         Test that the event has been created in the setUp method
@@ -325,3 +344,28 @@ class EventTests(APITestCase):
         self.assertEquals(self.all_event_data[1]['event_url'], response.data['event_url'])
         self.assertNotEquals(None, response.data['created_at'])
         self.assertNotEquals(None, response.data['modified_at'])
+
+    def test_get_event_managers(self):
+        """
+        Test whether event managers are being fetched properly
+        """
+        client = APIClient()
+
+        response = client.get('/eventmanagers/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Setting authentication details for content modifier
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        response = client.get('/eventmanagers/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        for profile in response.data:
+            self.assertEquals(profile['user']['first_name'], 'first')
+            self.assertEquals(profile['user']['last_name'], 'last')
+            self.assertEquals(profile['user']['email'], 'test@gmail.com')
+            self.assertEquals(profile['user_type'], EVENT_MANAGERS)
+            self.assertEquals(profile['phone_num'], '95553')
+            self.assertNotEquals(None, profile['user']['username'])
