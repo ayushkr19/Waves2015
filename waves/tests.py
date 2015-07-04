@@ -192,7 +192,7 @@ class EventTests(APITestCase):
         'event_url': 'http://www.fb.com'
     }
 
-    add_em_to_event_data = {
+    em_to_event_data = {
         "event_name": "Event 1",
         "event_managers": [
             {
@@ -389,7 +389,7 @@ class EventTests(APITestCase):
         """
         client = APIClient()
 
-        response = client.post('/eventmanagers/', format='json', data=self.add_em_to_event_data)
+        response = client.post('/eventmanagers/', format='json', data=self.em_to_event_data)
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
         # Setting authentication details for content modifier
@@ -397,7 +397,7 @@ class EventTests(APITestCase):
         client.credentials()
         client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
 
-        response = client.post('/eventmanagers/', format='json', data=self.add_em_to_event_data)
+        response = client.post('/eventmanagers/', format='json', data=self.em_to_event_data)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
         event = Event.objects.get(name='Event 1')
@@ -405,3 +405,23 @@ class EventTests(APITestCase):
         em2 = event.event_managers.all()[1]
         self.assertEquals(em1.user.username, 'test_username_em1')
         self.assertEquals(em2.user.username, 'test_username_em2')
+
+    def test_delete_event_manager_from_event(self):
+        """
+        Test whether event managers are being removed from the event or not
+        """
+        client = APIClient()
+
+        response = client.delete('/eventmanagers/', format='json', data=self.em_to_event_data)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Setting authentication details for content modifier
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        response = client.delete('/eventmanagers/', format='json', data=self.em_to_event_data)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        event = Event.objects.get(name='Event 1')
+        self.assertFalse(event.event_managers.all())
