@@ -173,6 +173,63 @@ class ProfileTests(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEquals(response.data, NO_USER_WITH_SPECIFIED_USERNAME_ERROR_MESSAGE)
 
+    def user_can_edit_his_profile(self):
+        """
+        Test whether users can edit their profile information
+        # TODO: (Group checking not done yet)
+        """
+        user = User.objects.create_user(username='ayushkrcm', email='uer@gmail.com',
+                                        password='ayushd')
+        user.save()
+        profile = Profile.objects.create(user=user, user_type=BASIC_USER, phone_num='95553')
+        profile.save()
+
+        client = APIClient()
+
+        new_profile_data = {
+            'phone_num': '9637282571',
+            'user': {
+                'first_name': 'Ayush',
+                'last_name': 'Kumar',
+                'email': 'ayush@gmail.com',
+                'password': 'ayushkumar'
+            }
+
+        }
+        # Edit own profile without providing authentication information
+        response = client.put('/profile/ayushkrcm/', data=new_profile_data)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Edit own profile with Basic authentication
+        encoded = base64.b64encode('ayushkrcm:ayushd')
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+        response = client.put('/profile/ayushkrcm/', data=new_profile_data)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Get user object and check updated fields
+        user = User.objects.get(username='ayushkrcm')
+        self.assertEquals(user.first_name, 'Ayush')
+        self.assertEquals(user.last_name, 'Kumar')
+        self.assertEquals(user.email, 'ayush@gmail.com')
+        self.assertEquals(user.profile.phone_num, '9637282571')
+
+        # Get profile data using old password
+        response = client.get('/profile/ayushkrcm/')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Set credentials to new password
+        encoded = base64.b64encode('ayushkrcm:ayushkumar')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        # Get profile data using new password
+        response = client.get('/profile/ayushkrcm/')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        # Edit another user's information
+        response = client.put('/profile/test_username/', data=new_profile_data)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class EventTests(APITestCase):
     """
