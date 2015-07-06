@@ -41,6 +41,7 @@ class EventDetail(generics.RetrieveUpdateDestroyAPIView):
     }
     queryset = Event.objects.all()
     serializer_class = EventSerializer
+    lookup_field = 'subtitle'
 
 
 class ProfileCreate(APIView):
