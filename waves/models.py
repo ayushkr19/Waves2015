@@ -22,7 +22,7 @@ class Event(models.Model):
         return self.name
 
     name = models.CharField(max_length=100)
-    subtitle = models.CharField(max_length=50, blank=True, default='')
+    subtitle = models.CharField(max_length=50, unique=True)
     event_date = models.DateField(blank=True, null=True)
     event_time = models.TimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
