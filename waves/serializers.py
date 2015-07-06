@@ -100,7 +100,7 @@ class ProfileSerializer(serializers.Serializer):
 
 class EventSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
-    subtitle = serializers.CharField(max_length=50, default='')
+    subtitle = serializers.CharField(max_length=50)
     event_date = serializers.DateField(required=False)
     event_time = serializers.TimeField(required=False)
     created_at = serializers.DateTimeField(required=False)
