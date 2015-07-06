@@ -17,7 +17,6 @@ def create_user(username, email, password, first_name, last_name):
         user.last_name = last_name
         user.save()
     else:
-        # TODO: Remove
         print('User None')
     return user
 
@@ -30,8 +29,6 @@ class UserSerializer(serializers.ModelSerializer):
         write_only_fields = ('password',)
 
     def create(self, validated_data):
-
-        print('\n Creating user. (in create() of UserSerializer)')
 
         return create_user(username=validated_data['username'], email=validated_data['email'],
                            password=validated_data['password'], first_name=validated_data['first_name'],
@@ -116,11 +113,18 @@ class EventSerializer(serializers.Serializer):
         return Event.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        # TODO:
+        """
+        Update event objects.
+        Event managers can't be updated from here.
+        """
+        instance.name = validated_data.get('name', instance.name)
+        instance.subtitle = validated_data.get('subtitle', instance.subtitle)
+        instance.event_date = validated_data.get('event_date', instance.event_date)
+        instance.event_time = validated_data.get('event_time', instance.event_time)
+        instance.description = validated_data.get('description', instance.description)
+        instance.event_url = validated_data.get('event_url', instance.event_url)
+        instance.save()
         return instance
-
-
-
 
 
 class AnyUserSerializer(serializers.Serializer):
@@ -131,25 +135,9 @@ class AnyUserSerializer(serializers.Serializer):
 
     def create(self, validated_data):
 
-        print('\n In create() of AnyUserSerializer')
-        print('\n Printing validated data :')
-        print(validated_data)
-
         user_data = validated_data.pop('user')
-
-        print('\n Printing user data:')
-        print(user_data)
-
         user = User.objects.create_user(**user_data)
-
-        print('\nPrinting user object')
-        print(user)
-
         profile = Profile.objects.create(user=user, **validated_data)
-
-        print('\n Printing profile object: ')
-        print(profile)
-
         return profile
 
     def update(self, instance, validated_data):
@@ -179,10 +167,7 @@ class AnyUserSerializer(serializers.Serializer):
         """
 
         user = instance.user
-        # print(user)
-
         user_type = instance.user_type
-        # print(user_type)
 
         group = Group.objects.get(name=user_type)
         user.groups.add(group)
