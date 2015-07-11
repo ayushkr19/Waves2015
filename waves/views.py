@@ -208,3 +208,49 @@ class EventManagerOfEvents(APIView):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST, data=NO_EVENT_WITH_SPECIFIED_NAME)
+
+
+class UpdateView(APIView):
+    """
+    Updates (General/Event)
+    """
+
+    def post(self, request, format=None):
+        """
+        Create a new update
+        """
+        created_by__username = request.data.get('created_by__username', None)
+        for_event__subtitle = request.data.get('for_event__subtitle', None)
+
+        if created_by__username is not None:
+            created_by = Profile.objects.get(user__username=created_by__username)
+        else:
+            created_by = None
+
+        if for_event__subtitle is not None:
+            for_event = Event.objects.get(subtitle=for_event__subtitle)
+        else:
+            for_event = None
+
+        update_serializer = UpdateSerializer(data=request.data)
+        if update_serializer.is_valid(raise_exception=True):
+            if created_by is not None and for_event is not None:
+                update_serializer.save(created_by=created_by, for_event=for_event)
+                return Response(status=status.HTTP_201_CREATED)
+            elif created_by is not None:
+                update_serializer.save(created_by=created_by)
+                return Response(status=status.HTTP_201_CREATED)
+            elif for_event is not None:
+                update_serializer.save(for_event=for_event)
+                return Response(status=status.HTTP_201_CREATED)
+            else:
+                update_serializer.save()
+                return Response(status=status.HTTP_201_CREATED)
+
+    def get(self, request, format=None):
+        """
+        Retrieve a list of updates
+        """
+        updates = Update.objects.all()
+        updates_serializer = UpdateSerializer(updates, many=True)
+        return Response(updates_serializer.data, status=status.HTTP_200_OK)

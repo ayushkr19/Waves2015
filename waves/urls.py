@@ -9,6 +9,7 @@ urlpatterns = [
     url(r'^profile/(?P<username>[a-zA-Z0-9._]+)/$', views.ProfileDetailView.as_view()),
     url(r'^profiles/$', views.ProfileListView.as_view()),
     url(r'^eventmanagers/$', views.EventManagerOfEvents.as_view()),
+    url(r'^updates/$', views.UpdateView.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

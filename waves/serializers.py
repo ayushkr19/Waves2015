@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ObjectDoesNotExist
-from waves.models import Event, Profile
+from waves.models import *
 from rest_framework import serializers
 from constants import *
 from django.dispatch import receiver
@@ -172,4 +172,23 @@ class AnyUserSerializer(serializers.Serializer):
         group = Group.objects.get(name=user_type)
         user.groups.add(group)
 
+class EventNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ('name', 'subtitle')
 
+class UpdateSerializer(serializers.Serializer):
+
+    heading = serializers.CharField(max_length=50)
+    description = serializers.CharField(max_length=200)
+    created_at = serializers.DateTimeField(required=False)
+    modified_at = serializers.DateTimeField(required=False)
+    general_update = serializers.BooleanField(required=False)
+    created_by = ProfileSerializer(required=False)
+    for_event = EventNameSerializer(required=False)
+
+    def create(self, validated_data):
+        return Update.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        pass
