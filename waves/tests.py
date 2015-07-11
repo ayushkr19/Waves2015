@@ -500,6 +500,20 @@ class UpdateTest(APITestCase):
         'event_url': 'http://www.fb.com'
     }
 
+    update_data1 = {
+        'heading': 'Head 1',
+        'description': 'Desc',
+        'general_update': True
+    }
+
+    update_data2 = {
+        'heading': 'Head 2',
+        'description': 'Desc',
+        'general_update': False
+    }
+
+    all_update_data = [update_data1, update_data2]
+
     def setUp(self):
         # Create all groups necessary
         for group_name in ALL_GRPS:
@@ -544,6 +558,12 @@ class UpdateTest(APITestCase):
 
         event2 = Event.objects.create(**self.event2_data)
         event2.save()
+
+        update1 = Update.objects.create(**self.update_data1)
+        update1.save()
+
+        update2 = Update.objects.create(**self.update_data2)
+        update2.save()
 
     def test_update_created(self):
 
@@ -602,3 +622,14 @@ class UpdateTest(APITestCase):
         # Posting data from superuser
         response = client.post('/updates/', data=update_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_updates(self):
+
+        client = APIClient()
+        response = client.get('/updates/', format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+
+        for i in range(self.all_update_data.__len__()):
+            self.assertEquals(self.all_update_data[i]['heading'], response.data[i]['heading'])
+            self.assertEquals(self.all_update_data[i]['description'], response.data[i]['description'])
+            self.assertEquals(self.all_update_data[i]['general_update'], response.data[i]['general_update'])
