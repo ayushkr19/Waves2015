@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from waves.models import Event, Profile
+from waves.models import *
 
 admin.site.register(Event)
 
@@ -29,3 +29,5 @@ class ProfileAdmin(admin.ModelAdmin):
     list_filter = ('user_type', 'created_at', 'modified_at')
 
 admin.site.register(Profile, ProfileAdmin)
+
+admin.site.register(Update)

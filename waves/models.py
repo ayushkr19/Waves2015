@@ -3,7 +3,7 @@ from django.db import models
 from constants import *
 
 # Create your models here.
-
+# Post save signals in serializers.py
 class Profile(models.Model):
 
     def __str__(self):
@@ -30,4 +30,19 @@ class Event(models.Model):
     description = models.TextField()
     event_url = models.URLField(blank=True, null=True)
     event_managers = models.ManyToManyField(Profile, blank=True, related_name='ems')
+
+
+class Update(models.Model):
+    def __str__(self):
+        return self.heading + ',' + str(self.created_at)
+
+    heading = models.CharField(max_length=50)
+    description = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(Profile, null=True)
+    for_event = models.ForeignKey(Event, null=True)
+    general_update = models.NullBooleanField()
+    # tags? , Event Category?
+
 
