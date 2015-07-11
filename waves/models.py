@@ -33,6 +33,7 @@ class Event(models.Model):
 
 
 class Update(models.Model):
+
     def __str__(self):
         return self.heading + ',' + str(self.created_at)
 

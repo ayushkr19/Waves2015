@@ -5,7 +5,7 @@ from django.test import TestCase
 # Create your tests here.
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory, APIClient
-from waves.models import Profile, Event
+from waves.models import *
 from waves.views import ProfileCreate, EventList
 from constants import *
 
@@ -229,7 +229,6 @@ class ProfileTests(APITestCase):
         # Edit another user's information
         response = client.put('/profile/test_username/', data=new_profile_data)
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
-
 
 class EventTests(APITestCase):
     """
@@ -482,3 +481,124 @@ class EventTests(APITestCase):
 
         event = Event.objects.get(name='Event 1')
         self.assertFalse(event.event_managers.all())
+
+class UpdateTest(APITestCase):
+    """
+    Tests related to updates
+    """
+    event1_data = {
+        'name': 'Event 1',
+        'description': 'Description',
+        'subtitle': 'Subtitle',
+        'event_url': 'http://www.google.com'
+    }
+
+    event2_data = {
+        'name': 'Event 2',
+        'description': 'Description 2',
+        'subtitle': 'Bla Bla',
+        'event_url': 'http://www.fb.com'
+    }
+
+    def setUp(self):
+        # Create all groups necessary
+        for group_name in ALL_GRPS:
+            Group.objects.create(name=group_name)
+
+        # Create a user (just for fun)
+        user = User.objects.create_user(username='test_username_cm', email='test@gmail.com',
+                                        password='password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=CONTENT_MODIFIERS, phone_num='95553')
+        profile.save()
+
+        # Create a user (just for fun)
+        user = User.objects.create_user(username='test_username', email='test@gmail.com',
+                                        password='password')
+        user.first_name = 'first'
+        user.last_name = 'last'
+        user.save()
+        # Create profile for the user
+        profile = Profile.objects.create(user=user, user_type=BASIC_USER_GRP, phone_num='95553')
+        profile.save()
+
+        # Create a superuser
+        superuser = User.objects.create_user(username='ayushkrcm', email='su@gmail.com',
+                                             password='ayushd')
+        superuser.first_name = 'first_su'
+        superuser.last_name = 'last_su'
+        superuser.is_staff = True
+        superuser.is_superuser = True
+        superuser.save()
+        # Create profile for the superuser
+        profile = Profile.objects.create(user=superuser, user_type=CONTENT_MODIFIERS, phone_num='95553')
+        profile.save()
+
+        # Create events
+
+        event1 = Event.objects.create(**self.event1_data)
+        event1.save()
+
+        event2 = Event.objects.create(**self.event2_data)
+        event2.save()
+
+    def test_update_created(self):
+
+        client = APIClient()
+        update_data = {
+            'heading': 'Update1',
+            'description': 'Desc',
+            'general_update': 'True'
+        }
+
+        # Post data from an unauthenticated user
+        response = client.post('/updates/', data=update_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Set authentication details for other group
+        encoded = base64.b64encode('test_username:test_password')
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        # Post data from authenticated user belonging to the other group
+        response = client.post('/updates/', data=update_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        # Set authentication details for necessary group
+        encoded = base64.b64encode('test_username_cm:password')
+        client.credentials()  # To clear auth credentials
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        # Post data from authenticated user belonging to the necessary group
+        response = client.post('/updates/', data=update_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+        update = Update.objects.get(heading='Update1', description='Desc')
+        self.assertIsNone(update.for_event)
+        self.assertEquals(update.general_update, True)
+        self.assertEquals(update.created_by.user, User.objects.get(username='test_username_cm'))
+
+        update_data = {
+            'heading': 'Update2',
+            'description': 'Desc',
+            'general_update': 'False',
+            'for_event__subtitle': 'Subtitle'
+        }
+
+        response = client.post('/updates/', data=update_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+        update = Update.objects.get(heading='Update2', description='Desc')
+        self.assertEquals(update.general_update, False)
+        self.assertEquals(update.for_event, Event.objects.get(subtitle='Subtitle'))
+
+        # Setting authentication details for superuser
+        encoded = base64.b64encode('ayushkrcm:ayushd')
+        client.credentials()
+        client.credentials(HTTP_AUTHORIZATION='Basic ' + encoded)
+
+        # Posting data from superuser
+        response = client.post('/updates/', data=update_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)

@@ -214,12 +214,19 @@ class UpdateView(APIView):
     """
     Updates (General/Event)
     """
+    permission_classes = (HasAtLeastOneGroupPermission, )
+    required_groups = {
+        'GET':  ALL_GRPS,
+        'POST': [CONTENT_MODIFIERS_GRP],
+        'PUT': [CONTENT_MODIFIERS_GRP]
+    }
 
     def post(self, request, format=None):
         """
         Create a new update
         """
-        created_by__username = request.data.get('created_by__username', None)
+        # created_by__username = request.data.get('created_by__username', None)
+        created_by__username = request.user
         for_event__subtitle = request.data.get('for_event__subtitle', None)
 
         if created_by__username is not None:
